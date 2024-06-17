@@ -9,10 +9,11 @@ public class Player_ItemObservation : MonoBehaviour
     [SerializeField] float itemMaxDistance;
     [SerializeField] LayerMask itemLayer;
     [SerializeField] float observationDistance; // how far from camera object will be when observing
+    [SerializeField] float rotationRate = 1;
 
     ObserableItem obserableItem;
-    Vector3 itemOriginalPosition;
-    Quaternion itemOriginalRotation;
+    /*Vector3 itemOriginalPosition;
+    Quaternion itemOriginalRotation;*/
 
     private void Awake()
     {
@@ -32,30 +33,26 @@ public class Player_ItemObservation : MonoBehaviour
     {
         if (obserableItem != null)
         {
+            Vector3 rotation = obserableItem.transform.eulerAngles;
 
+            rotation.x += player.Input.Look.y * rotationRate * Time.deltaTime;
+            rotation.y += player.Input.Look.x * rotationRate * Time.deltaTime;
+
+            obserableItem.transform.eulerAngles = rotation;
         }
     }
 
 
     private void OnInteractionStart()
     {
-        if (obserableItem == null)
-        {
-            Ray ray = player.Camera.ScreenPointToRay(new Vector3(Screen.width / 2, Screen.height / 2, 0));
-            if (Physics.Raycast(ray, out RaycastHit hit, itemMaxDistance, itemLayer))
-            {
-                if (hit.collider.TryGetComponent<ObserableItem>(out ObserableItem item))
-                {
-                    obserableItem = item;
-                    itemOriginalPosition = obserableItem.transform.position;
-                    itemOriginalRotation = obserableItem.transform.rotation;
+        if (obserableItem != null) return;
 
-                    obserableItem.transform.position = PositionInFrontOfCamera;
-                    obserableItem.UseGravity(false);
-                }
-                //else Debug.LogError("No item hit but raycast hit something");
-            }
-            //else Debug.LogError("Raycast miss");
+        Ray ray = player.Camera.ScreenPointToRay(new Vector3(Screen.width / 2, Screen.height / 2, 0));
+        if (Physics.Raycast(ray, out RaycastHit hit, itemMaxDistance, itemLayer) &&
+            hit.collider.TryGetComponent<ObserableItem>(out ObserableItem item))
+        {
+            obserableItem = item;
+            obserableItem.PickUp(PositionInFrontOfCamera);
         }
     }
 
@@ -63,9 +60,7 @@ public class Player_ItemObservation : MonoBehaviour
     {
         if (obserableItem != null)
         {
-            obserableItem.transform.position = itemOriginalPosition;
-            obserableItem.transform.rotation = itemOriginalRotation;
-            obserableItem.UseGravity(true);
+            obserableItem.LetGo();
             obserableItem = null;
         }
     }

@@ -1064,6 +1064,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 64
   observationDistance: 1
+  rotationRate: 10
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
